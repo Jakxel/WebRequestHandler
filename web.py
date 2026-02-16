@@ -1,25 +1,47 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import parse_qsl, urlparse
+from urllib.parse import urlparse
 
 
 class WebRequestHandler(BaseHTTPRequestHandler):
 
-    def url(self):
-        return urlparse(self.path)
+    # Documentos almacenados en memoria
+    
+    contenido = {
+        '/': """
+<html>
+  <h1>Home Page</h1>
+  <ul>
+    <li><a href="/proyecto/web-uno">Web Uno</a></li>
+    <li><a href="/proyecto/web-dos">Web Dos</a></li>
+    <li><a href="/proyecto/web-tres">Web Tres</a></li>
+  </ul>
+</html>
+""",
+        '/proyecto/web-uno': """
+<html>
+  <h1>Proyecto: web-uno</h1>
+</html>
+""",
+        '/proyecto/web-dos': """
+<html>
+  <h1>Proyecto: web-dos</h1>
+</html>
+""",
+        '/proyecto/web-tres': """
+<html>
+  <h1>Proyecto: web-tres</h1>
+</html>
+"""
+    }
 
     def do_GET(self):
-        if self.url().path == "/":
-            try:
-                with open("home.html", "r", encoding="utf-8") as f:
-                    content = f.read()
+        ruta = urlparse(self.path).path
 
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html")
-                self.end_headers()
-                self.wfile.write(content.encode("utf-8"))
-
-            except FileNotFoundError:
-                self.send_error(404, "home.html not found")
+        if ruta in self.contenido:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(self.contenido[ruta].encode("utf-8"))
         else:
             self.send_error(404, "Page not found")
 
