@@ -3,33 +3,25 @@ from urllib.parse import parse_qsl, urlparse
 
 
 class WebRequestHandler(BaseHTTPRequestHandler):
+
     def url(self):
         return urlparse(self.path)
 
-    def query_data(self):
-        return dict(parse_qsl(self.url().query))
-
     def do_GET(self):
-        if self.valida_autor():
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html")
-            self.end_headers()
-            self.wfile.write(self.get_html().encode("utf-8"))
-        else:
-            self.send_error(404, "The author doesnt exist")
+        if self.url().path == "/":
+            try:
+                with open("home.html", "r", encoding="utf-8") as f:
+                    content = f.read()
 
-    def valida_autor(self):
-        return 'autor' in self.query_data()
-        
-    def get_html(self):
-        path_parts = self.url().path.strip("/").split("/")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.end_headers()
+                self.wfile.write(content.encode("utf-8"))
 
-        if len(path_parts) >= 2:
-            proyecto = path_parts[1]
-            autor = self.query_data()['autor']
-            return f"<h1>Proyecto: {proyecto} Autor: {autor}</h1>"
+            except FileNotFoundError:
+                self.send_error(404, "home.html not found")
         else:
-            return "<h1>Invalid route</h1>"
+            self.send_error(404, "Page not found")
 
 
 if __name__ == "__main__":
